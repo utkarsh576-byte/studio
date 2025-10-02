@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Age Calculator (Marathi)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>वय कॅलक्युलेटर</h1>
+    <p class="hint">
+      जन्मतारीख (Birth Date) भरा. जर जन्माचा वेळ (Birth Time) माहित असेल तर तो पण भरा आणि खाली वय सेकंदांसह दिसेल.
+    </p>
+
+    <form id="ageForm" onsubmit="return false;">
+      <div class="field">
+        <label for="birthDate">जन्मतारीख (YYYY-MM-DD)</label>
+        <input type="date" id="birthDate" required />
+      </div>
+
+      <div class="field">
+        <label for="birthTime">जन्माचा वेळ (HH:MM:SS) (ऐच्छिक)</label>
+        <input type="time" id="birthTime" step="1" />
+      </div>
+
+      <div class="actions">
+        <button type="button" id="calcBtn">हिशोब करा</button>
+        <button type="reset" id="resetBtn">रीसेट</button>
+      </div>
+    </form>
+
+    <section id="result" class="result hidden">
+      <h2>परिणाम</h2>
+      <div id="ageYears" class="age-line"></div>
+      <div id="fullBreakdown" class="age-line"></div>
+      <div id="live" class="live hidden"></div>
+    </section>
+
+    <footer>
+      <small>
+        सूचना: वेळ न दिल्यास फक्त पूर्ण वर्षांचे वय दाखवले जाईल.
+        वेळ दिल्यास रिअल-टाइम सेकंदांसह अपडेट होईल.
+      </small>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
