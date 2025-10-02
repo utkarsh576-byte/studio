@@ -7,6 +7,8 @@
   const ageYearsEl = document.getElementById("ageYears");
   const fullBreakdownEl = document.getElementById("fullBreakdown");
   const liveEl = document.getElementById("live");
+  const ageYmdEl = document.getElementById("ageYMD");
+  const ageYmdInclEl = document.getElementById("ageYMDInclusive");
 
   let liveTimer = null;
   let birthDateTime = null;
@@ -30,17 +32,42 @@
     return years;
   }
 
-  function plural(n, word, lang = "mr") {
-    // Simple Marathi plural logic fallback to English pattern
-    if (lang === "mr") {
-      // Keep it straightforward
-      return `${n} ${word}`;
+  // Years-Months-Days (standard calendar borrowing)
+  function calcYMD(bDate, nDate) {
+    const b = new Date(bDate.getFullYear(), bDate.getMonth(), bDate.getDate());
+    const n = new Date(nDate.getFullYear(), nDate.getMonth(), nDate.getDate());
+    if (n < b) return { years: 0, months: 0, days: 0, future: true, borrowed: false };
+
+    let years = n.getFullYear() - b.getFullYear();
+    let months = n.getMonth() - b.getMonth();
+    let days = n.getDate() - b.getDate();
+
+    const borrowed = days < 0;
+    if (days < 0) {
+      const prevMonth = new Date(n.getFullYear(), n.getMonth(), 0);
+      days += prevMonth.getDate();
+      months -= 1;
     }
-    return n === 1 ? `${n} ${word}` : `${n} ${word}s`;
+    if (months < 0) {
+      months += 12;
+      years -= 1;
+    }
+    return { years, months, days, future: false, borrowed };
+  }
+
+  // Inclusive variant (जर borrowing झाले तर दिवस +1)
+  function toInclusive(ymdObj) {
+    if (ymdObj.borrowed) {
+      return {
+        years: ymdObj.years,
+        months: ymdObj.months,
+        days: ymdObj.days + 1
+      };
+    }
+    return { years: ymdObj.years, months: ymdObj.months, days: ymdObj.days };
   }
 
   function formatBreakdown(ms) {
-    // Total difference
     let remaining = ms / 1000;
     const seconds = Math.floor(remaining % 60);
     remaining = (remaining - seconds) / 60;
@@ -49,7 +76,6 @@
     const hours = Math.floor(remaining % 24);
     remaining = (remaining - hours) / 24;
     const days = Math.floor(remaining);
-
     return { days, hours, minutes, seconds };
   }
 
@@ -60,17 +86,31 @@
       ageYearsEl.innerHTML = `<span style="color: var(--danger)">जन्मतारीख / वेळ भविष्यातील आहे.</span>`;
       fullBreakdownEl.textContent = "";
       clearLive();
+      if (ageYmdEl) ageYmdEl.textContent = "";
+      if (ageYmdInclEl) ageYmdInclEl.textContent = "";
       return;
     }
 
-    // Age in calendar years
     const years = calcAgeYearsOnly(birthDateTime, now);
+    ageYearsEl.textContent = `वय (पूर्ण वर्षे): ${years} वर्षे`;
 
-    ageYearsEl.textContent = `वय: ${years} वर्षे`;
+    // Years-Months-Days
+    const ymd = calcYMD(birthDateTime, now);
+    if (ymd.future) {
+      ageYmdEl.textContent = "भविष्यातील तारीख.";
+      ageYmdInclEl.textContent = "";
+    } else {
+      ageYmdEl.textContent = `अचूक वय: ${ymd.years} वर्षे ${ymd.months} महिने ${ymd.days} दिवस`;
+      const incl = toInclusive(ymd);
+      if (incl.days !== ymd.days) {
+        ageYmdInclEl.textContent =
+          `Inclusive शैली: ${incl.years} वर्षे ${incl.months} महिने ${incl.days} दिवस`;
+      } else {
+        ageYmdInclEl.textContent = "";
+      }
+    }
 
     if (useTime) {
-      const breakdown = formatBreakdown(diffMs);
-      // अतिरिक्त माहिती: अंदाजे एकूण दिवस, तास वगैरे
       const totalSeconds = Math.floor(diffMs / 1000);
       const totalMinutes = Math.floor(totalSeconds / 60);
       const totalHours = Math.floor(totalMinutes / 60);
@@ -87,11 +127,9 @@
         const dMs = nowLive - birthDateTime;
         if (dMs < 0) return;
         const b = formatBreakdown(dMs);
-        // पुनश्च वर्षे live साठी (थोडा फरक नाही)
         const liveYears = calcAgeYearsOnly(birthDateTime, nowLive);
-
         liveEl.innerHTML =
-          `LIVE Breakdown:
+`LIVE Breakdown:
 वर्षे: ${liveYears}
 दिवस: ${b.days}
 तास: ${b.hours}
@@ -103,7 +141,7 @@
       clearLive();
       liveTimer = setInterval(updateLive, 1000);
     } else {
-      fullBreakdownEl.textContent = `फक्त वर्षांचे वय दाखवले आहे (जन्माचा वेळ दिलेला नाही).`;
+      fullBreakdownEl.textContent = `फक्त तारीख वापरली आहे (वेळ दिलेली नाही).`;
       clearLive();
     }
 
@@ -113,35 +151,31 @@
   calcBtn.addEventListener("click", () => {
     const dateVal = birthDateEl.value;
     const timeVal = birthTimeEl.value;
-
     if (!dateVal) {
       alert("कृपया जन्मतारीख भरा.");
       return;
     }
-
-    // Construct birth datetime
     try {
       if (timeVal) {
-        // date + time (assume local)
         birthDateTime = new Date(`${dateVal}T${timeVal}`);
         useTime = true;
       } else {
         birthDateTime = new Date(`${dateVal}T00:00:00`);
         useTime = false;
       }
-    } catch (e) {
+    } catch {
       alert("अवैध तारीख / वेळ.");
       return;
     }
-
-    const now = new Date();
-    calcFull(now);
+    calcFull(new Date());
   });
 
   resetBtn.addEventListener("click", () => {
     birthDateTime = null;
     useTime = false;
     clearLive();
+    if (ageYmdEl) ageYmdEl.textContent = "";
+    if (ageYmdInclEl) ageYmdInclEl.textContent = "";
     resultSec.classList.add("hidden");
   });
 })();
