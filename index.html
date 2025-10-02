@@ -10,7 +10,7 @@
   <main class="container">
     <h1>वय कॅलक्युलेटर</h1>
     <p class="hint">
-      जन्मतारीख (Birth Date) भरा. जर जन्माचा वेळ (Birth Time) माहित असेल तर तो पण भरा आणि खाली वय सेकंदांसह दिसेल.
+      जन्मतारीख भरा. वेळ दिल्यास सेकंदांसह LIVE अपडेट. तसेच अचूक वय (वर्षे-महिने-दिवस) स्वतंत्र दाखवले आहे.
     </p>
 
     <form id="ageForm" onsubmit="return false;">
@@ -33,14 +33,15 @@
     <section id="result" class="result hidden">
       <h2>परिणाम</h2>
       <div id="ageYears" class="age-line"></div>
+      <div id="ageYMD" class="age-line"></div>
+      <div id="ageYMDInclusive" class="age-line"></div>
       <div id="fullBreakdown" class="age-line"></div>
       <div id="live" class="live hidden"></div>
     </section>
 
     <footer>
       <small>
-        सूचना: वेळ न दिल्यास फक्त पूर्ण वर्षांचे वय दाखवले जाईल.
-        वेळ दिल्यास रिअल-टाइम सेकंदांसह अपडेट होईल.
+        टीप: Inclusive शैली म्हणजे borrowing झाल्यावर दिवस +1 दाखवला जातो (तुझ्या उदाहरणासारखा).
       </small>
     </footer>
   </main>
